@@ -1,0 +1,29 @@
+spring:
+  application:
+    name: pizza-pos-backend
+
+  datasource:
+    url: jdbc:postgresql://localhost:5432/pizza_pos
+    username: postgres
+    password: 12345
+
+  jpa:
+    hibernate:
+      ddl-auto: validate
+
+    show-sql: true
+
+    properties:
+      hibernate:
+        format-sql: true
+
+  flyway:
+    enabled: true
+    location: classpath:db/migration
+
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+
+server:
+  port: 8000
