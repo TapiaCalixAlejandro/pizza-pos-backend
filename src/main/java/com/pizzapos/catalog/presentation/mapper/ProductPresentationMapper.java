@@ -1,9 +1,9 @@
 package com.pizzapos.catalog.presentation.mapper;
 
-import com.pizzapos.catalog.domain.enums.ProductStatus;
 import com.pizzapos.catalog.domain.model.Product;
 import com.pizzapos.catalog.presentation.dto.request.CreateProductRequest;
 import com.pizzapos.catalog.presentation.dto.response.CreateProductResponse;
+import com.pizzapos.catalog.presentation.dto.response.GetProductResponse;
 import com.pizzapos.config.CentralMapperConfig;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -15,6 +15,8 @@ public interface ProductPresentationMapper {
     @Mapping(target = "productStatus", constant = "ACTIVE")
     Product toDomain(CreateProductRequest request);
 
-    CreateProductResponse toResponse(Product product);
+    CreateProductResponse toCreateResponse(Product product);
+
+    GetProductResponse toGetResponse(Product product);
 
 }
