@@ -11,6 +11,8 @@ public final class Messages {
 
     public static final String PRODUCT_DELETED = "Product deleted successfully.";
 
+    public static final String PRODUCT_FOUND = "Product retrieved successfully.";
+
     public static final String PRODUCT_ALREADY_EXISTS = "A product with this name already exists.";
 
     public static final String PRODUCT_NOT_FOUND = "Product not found.";

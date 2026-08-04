@@ -2,8 +2,10 @@ package com.pizzapos.catalog.presentation.controller;
 
 import com.pizzapos.catalog.domain.model.Product;
 import com.pizzapos.catalog.domain.ports.in.CreateProductUseCase;
+import com.pizzapos.catalog.domain.ports.in.GetProductByIdUseCase;
 import com.pizzapos.catalog.presentation.dto.request.CreateProductRequest;
 import com.pizzapos.catalog.presentation.dto.response.CreateProductResponse;
+import com.pizzapos.catalog.presentation.dto.response.GetProductResponse;
 import com.pizzapos.catalog.presentation.mapper.ProductPresentationMapper;
 import com.pizzapos.shared.constants.Messages;
 import com.pizzapos.shared.response.ApiResponse;
@@ -22,13 +24,16 @@ import org.springframework.web.bind.annotation.*;
 public class ProductController {
 
     private final CreateProductUseCase createProductUseCase;
+    private final GetProductByIdUseCase getProductByIdUseCase;
     private final ProductPresentationMapper productPresentationMapper;
 
     public ProductController(
             CreateProductUseCase createProductUseCase,
+            GetProductByIdUseCase getProductByIdUseCase,
             ProductPresentationMapper productPresentationMapper
     ) {
         this.createProductUseCase = createProductUseCase;
+        this.getProductByIdUseCase = getProductByIdUseCase;
         this.productPresentationMapper = productPresentationMapper;
     }
 
@@ -60,10 +65,34 @@ public class ProductController {
     ) {
         Product product = productPresentationMapper.toDomain(request);
         Product savedProduct = createProductUseCase.createProduct(product);
-        CreateProductResponse response = productPresentationMapper.toResponse(savedProduct);
+        CreateProductResponse response = productPresentationMapper.toCreateResponse(savedProduct);
 
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(ResponseFactory.success(Messages.PRODUCT_CREATED, response));
+    }
+
+    @Operation(
+            summary = "Get product by id",
+            description = "Returns a product by its identifier"
+    )
+    @ApiResponses({
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "200",
+                    description = "Product found successfully"
+            ),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "404",
+                    description = "Product not found"
+            )
+    })
+    @GetMapping("/{id}")
+    public ResponseEntity<ApiResponse<GetProductResponse>> getProduct(
+            @PathVariable Long id
+    ) {
+        Product product = getProductByIdUseCase.getProductById(id);
+        GetProductResponse response = productPresentationMapper.toGetResponse(product);
+
+        return ResponseEntity.ok(ResponseFactory.success(Messages.PRODUCT_FOUND, response));
     }
 
 }

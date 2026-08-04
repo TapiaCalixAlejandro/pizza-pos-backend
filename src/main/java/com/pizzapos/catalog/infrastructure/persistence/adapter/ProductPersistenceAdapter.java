@@ -31,16 +31,22 @@ public class ProductPersistenceAdapter implements ProductRepositoryPort {
     }
 
     @Override
-    public Optional<Product> findById(Long id) {
+    public Optional<Product> findByName(String name) {
 
-        return productJpaRepository.findById(id)
+        return productJpaRepository.findByName(name)
                 .map(productMapper::toDomain);
     }
 
     @Override
-    public Optional<Product> findByName(String name) {
+    public boolean existsByName(String name) {
 
-        return productJpaRepository.findByName(name)
+        return productJpaRepository.existsByName(name);
+    }
+
+    @Override
+    public Optional<Product> findById(Long id) {
+
+        return productJpaRepository.findById(id)
                 .map(productMapper::toDomain);
     }
 
@@ -51,12 +57,6 @@ public class ProductPersistenceAdapter implements ProductRepositoryPort {
                 .stream()
                 .map(productMapper::toDomain)
                 .toList();
-    }
-
-    @Override
-    public boolean existsByName(String name) {
-
-        return productJpaRepository.existsByName(name);
     }
 
     @Override

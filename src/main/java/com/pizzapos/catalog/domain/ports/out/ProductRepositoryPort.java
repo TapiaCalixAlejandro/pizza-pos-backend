@@ -9,13 +9,13 @@ public interface ProductRepositoryPort {
 
     Product save(Product product);
 
-    Optional<Product> findById(Long id);
-
     Optional<Product> findByName(String name);
 
-    List<Product> findAll();
-
     boolean existsByName(String name);
+
+    Optional<Product> findById(Long id);
+
+    List<Product> findAll();
 
     void deleteById(Long id);
 
