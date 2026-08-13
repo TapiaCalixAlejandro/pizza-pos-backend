@@ -5,20 +5,14 @@ import com.pizzapos.catalog.domain.enums.ProductType;
 
 import java.math.BigDecimal;
 
-public class CreateProductResponse {
+public class ProductResponse {
 
     private Long id;
-
     private String name;
-
     private String description;
-
     private BigDecimal price;
-
     private String image;
-
     private ProductType productType;
-
     private ProductStatus productStatus;
 
     public Long getId() {
@@ -76,5 +70,4 @@ public class CreateProductResponse {
     public void setProductStatus(ProductStatus productStatus) {
         this.productStatus = productStatus;
     }
-
 }

@@ -2,10 +2,10 @@ package com.pizzapos.catalog.presentation.controller;
 
 import com.pizzapos.catalog.domain.model.Product;
 import com.pizzapos.catalog.domain.ports.in.CreateProductUseCase;
+import com.pizzapos.catalog.domain.ports.in.GetAllProductsUseCase;
 import com.pizzapos.catalog.domain.ports.in.GetProductByIdUseCase;
 import com.pizzapos.catalog.presentation.dto.request.CreateProductRequest;
-import com.pizzapos.catalog.presentation.dto.response.CreateProductResponse;
-import com.pizzapos.catalog.presentation.dto.response.GetProductResponse;
+import com.pizzapos.catalog.presentation.dto.response.ProductResponse;
 import com.pizzapos.catalog.presentation.mapper.ProductPresentationMapper;
 import com.pizzapos.shared.constants.Messages;
 import com.pizzapos.shared.response.ApiResponse;
@@ -18,22 +18,33 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/api/v1/products")
-@Tag(name = "Products", description = "Operations related to product management")
+@Tag(
+        name = "Products",
+        description = "Operations related to product management"
+)
 public class ProductController {
 
+    private final ResponseFactory responseFactory;
     private final CreateProductUseCase createProductUseCase;
     private final GetProductByIdUseCase getProductByIdUseCase;
+    private final GetAllProductsUseCase getAllProductsUseCase;
     private final ProductPresentationMapper productPresentationMapper;
 
     public ProductController(
+            ResponseFactory responseFactory,
             CreateProductUseCase createProductUseCase,
             GetProductByIdUseCase getProductByIdUseCase,
+            GetAllProductsUseCase getAllProductsUseCase,
             ProductPresentationMapper productPresentationMapper
     ) {
+        this.responseFactory = responseFactory;
         this.createProductUseCase = createProductUseCase;
         this.getProductByIdUseCase = getProductByIdUseCase;
+        this.getAllProductsUseCase = getAllProductsUseCase;
         this.productPresentationMapper = productPresentationMapper;
     }
 
@@ -60,15 +71,15 @@ public class ProductController {
             )
     })
     @PostMapping
-    public ResponseEntity<ApiResponse<CreateProductResponse>> createProduct(
+    public ResponseEntity<ApiResponse<ProductResponse>> createProduct(
             @Valid @RequestBody CreateProductRequest request
     ) {
         Product product = productPresentationMapper.toDomain(request);
         Product savedProduct = createProductUseCase.createProduct(product);
-        CreateProductResponse response = productPresentationMapper.toCreateResponse(savedProduct);
+        ProductResponse response = productPresentationMapper.toResponse(savedProduct);
 
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(ResponseFactory.success(Messages.PRODUCT_CREATED, response));
+                .body(responseFactory.success(Messages.PRODUCT_CREATED, response));
     }
 
     @Operation(
@@ -86,13 +97,31 @@ public class ProductController {
             )
     })
     @GetMapping("/{id}")
-    public ResponseEntity<ApiResponse<GetProductResponse>> getProduct(
+    public ResponseEntity<ApiResponse<ProductResponse>> getProductById(
             @PathVariable Long id
     ) {
         Product product = getProductByIdUseCase.getProductById(id);
-        GetProductResponse response = productPresentationMapper.toGetResponse(product);
+        ProductResponse response = productPresentationMapper.toResponse(product);
 
-        return ResponseEntity.ok(ResponseFactory.success(Messages.PRODUCT_FOUND, response));
+        return ResponseEntity.ok(responseFactory.success(Messages.PRODUCT_FOUND, response));
+    }
+
+    @Operation(
+            summary = "Get all products",
+            description = "Returns all products available in the catalog"
+    )
+    @ApiResponses(value = {
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "200",
+                    description = "Products retrieved successfully"
+            )
+    })
+    @GetMapping
+    public ResponseEntity<ApiResponse<List<ProductResponse>>> getAllProducts() {
+        List<Product> products = getAllProductsUseCase.getAllProducts();
+        List<ProductResponse> response = productPresentationMapper.toResponseList(products);
+
+        return ResponseEntity.ok(responseFactory.success(Messages.PRODUCTS_RETRIEVED, response));
     }
 
 }

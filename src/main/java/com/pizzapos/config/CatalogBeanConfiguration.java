@@ -1,8 +1,10 @@
 package com.pizzapos.config;
 
 import com.pizzapos.catalog.application.service.CreateProductService;
+import com.pizzapos.catalog.application.service.GetAllProductsService;
 import com.pizzapos.catalog.application.service.GetProductByIdService;
 import com.pizzapos.catalog.domain.ports.in.CreateProductUseCase;
+import com.pizzapos.catalog.domain.ports.in.GetAllProductsUseCase;
 import com.pizzapos.catalog.domain.ports.in.GetProductByIdUseCase;
 import com.pizzapos.catalog.domain.ports.out.ProductRepositoryPort;
 import com.pizzapos.catalog.infrastructure.persistence.adapter.ProductPersistenceAdapter;
@@ -34,6 +36,13 @@ public class CatalogBeanConfiguration {
             ProductRepositoryPort repositoryPort) {
 
         return new GetProductByIdService(repositoryPort);
+    }
+
+    @Bean
+    public GetAllProductsUseCase getAllProductsUseCase(
+            ProductRepositoryPort repositoryPort) {
+
+        return new GetAllProductsService(repositoryPort);
     }
 
 }

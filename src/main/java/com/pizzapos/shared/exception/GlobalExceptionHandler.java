@@ -9,32 +9,35 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
-import java.time.LocalDateTime;
-import java.util.Collections;
 import java.util.List;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
+    private final  ResponseFactory responseFactory;
+
+    public GlobalExceptionHandler(ResponseFactory responseFactory) {
+        this.responseFactory = responseFactory;
+    }
 
     @ExceptionHandler(ResourceNotFoundException.class)
     public ResponseEntity<ApiErrorResponse> handleResourceNotFound(ResourceNotFoundException ex) {
 
         return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                .body(ResponseFactory.error(HttpStatus.NOT_FOUND, ex.getMessage()));
+                .body(responseFactory.error(HttpStatus.NOT_FOUND, ex.getMessage()));
     }
 
     @ExceptionHandler(BusinessException.class)
     public ResponseEntity<ApiErrorResponse> handleBusinessException(BusinessException ex) {
 
         return ResponseEntity.badRequest()
-                .body(ResponseFactory.error(HttpStatus.BAD_REQUEST, ex.getMessage()));
+                .body(responseFactory.error(HttpStatus.BAD_REQUEST, ex.getMessage()));
     }
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiErrorResponse> handleException(Exception ex) {
 
         return ResponseEntity.internalServerError()
-                .body(ResponseFactory.error(
+                .body(responseFactory.error(
                         HttpStatus.INTERNAL_SERVER_ERROR,
                         "An unexpected error occurred.",
                         List.of(ex.getMessage())));
@@ -50,7 +53,7 @@ public class GlobalExceptionHandler {
                 .toList();
 
         return ResponseEntity.badRequest()
-                .body(ResponseFactory.error(HttpStatus.BAD_REQUEST, "Request validation failed.", details));
+                .body(responseFactory.error(HttpStatus.BAD_REQUEST, "Request validation failed.", details));
     }
 
 }
