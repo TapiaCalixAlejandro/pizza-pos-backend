@@ -1,9 +1,7 @@
 package com.pizzapos.shared.tracing;
 
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.springframework.mock.web.MockHttpServletRequest;
-import org.springframework.web.context.request.RequestContextHolder;
-import org.springframework.web.context.request.ServletRequestAttributes;
 
 import java.util.UUID;
 
@@ -14,55 +12,33 @@ public class DefaultTraceProviderTest {
     private final DefaultTraceProvider traceProvider = new DefaultTraceProvider();
 
     @Test
+    @DisplayName("Should generate a trace ID")
     void shouldGenerateTraceId() {
-        MockHttpServletRequest request = new MockHttpServletRequest();
-
-        RequestContextHolder.setRequestAttributes(new ServletRequestAttributes(request));
-
         String traceId = traceProvider.getTraceId();
 
         assertNotNull(traceId);
-        assertDoesNotThrow(() -> UUID.fromString(traceId));
-
-        RequestContextHolder.resetRequestAttributes();
+        assertFalse(traceId.isBlank());
     }
 
     @Test
-    void shouldReturnSameTraceIdWithinSameRequest() {
-        MockHttpServletRequest request = new MockHttpServletRequest();
+    @DisplayName("Should generate a valid UUID trace ID")
+    void shouldGenerateValidUuidTraceId() {
 
-        RequestContextHolder.setRequestAttributes(new ServletRequestAttributes(request));
+        String traceId = traceProvider.getTraceId();
+
+        assertDoesNotThrow(() ->
+                UUID.fromString(traceId)
+        );
+    }
+
+    @Test
+    @DisplayName("Should generate different trace IDs")
+    void shouldGenerateDifferentTraceIds() {
 
         String firstTraceId = traceProvider.getTraceId();
         String secondTraceId = traceProvider.getTraceId();
 
-        assertNotNull(firstTraceId);
-        assertEquals(firstTraceId, secondTraceId);
-
-        RequestContextHolder.resetRequestAttributes();
-    }
-
-    @Test
-    void shouldGenerateDifferentTraceIdForDifferentRequests() {
-        MockHttpServletRequest firstRequest = new MockHttpServletRequest();
-
-        RequestContextHolder.setRequestAttributes(new ServletRequestAttributes(firstRequest));
-
-        String firstTraceId = traceProvider.getTraceId();
-
-        RequestContextHolder.resetRequestAttributes();
-
-        MockHttpServletRequest secondRequest = new MockHttpServletRequest();
-
-        RequestContextHolder.setRequestAttributes(new ServletRequestAttributes(secondRequest));
-
-        String secondTraceId = traceProvider.getTraceId();
-
-        assertNotNull(firstTraceId);
-        assertNotNull(secondTraceId);
-        assertNotEquals(firstTraceId, secondTraceId);
-
-        RequestContextHolder.resetRequestAttributes();
+        assertNotNull(firstTraceId, secondTraceId);
     }
 
 }

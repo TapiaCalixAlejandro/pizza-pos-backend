@@ -12,11 +12,11 @@ public class ResponseFactory {
 
     private final TraceProvider traceProvider;
 
-    private ResponseFactory(TraceProvider traceProvider) {
+    public ResponseFactory(TraceProvider traceProvider) {
         this.traceProvider = traceProvider;
     }
 
-    private String getTraceId() {
+    public String getTraceId() {
         return traceProvider.getTraceId();
     }
 
