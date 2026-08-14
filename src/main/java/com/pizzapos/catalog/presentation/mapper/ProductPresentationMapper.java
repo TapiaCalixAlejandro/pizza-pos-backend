@@ -2,11 +2,12 @@ package com.pizzapos.catalog.presentation.mapper;
 
 import com.pizzapos.catalog.domain.model.Product;
 import com.pizzapos.catalog.presentation.dto.request.CreateProductRequest;
-import com.pizzapos.catalog.presentation.dto.response.CreateProductResponse;
-import com.pizzapos.catalog.presentation.dto.response.GetProductResponse;
+import com.pizzapos.catalog.presentation.dto.response.ProductResponse;
 import com.pizzapos.config.CentralMapperConfig;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
+
+import java.util.List;
 
 @Mapper(config = CentralMapperConfig.class)
 public interface ProductPresentationMapper {
@@ -15,8 +16,8 @@ public interface ProductPresentationMapper {
     @Mapping(target = "productStatus", constant = "ACTIVE")
     Product toDomain(CreateProductRequest request);
 
-    CreateProductResponse toCreateResponse(Product product);
+    ProductResponse toResponse(Product product);
 
-    GetProductResponse toGetResponse(Product product);
+    List<ProductResponse> toResponseList(List<Product> products);
 
 }

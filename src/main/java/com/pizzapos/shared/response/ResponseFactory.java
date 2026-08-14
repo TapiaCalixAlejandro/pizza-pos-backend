@@ -1,21 +1,26 @@
 package com.pizzapos.shared.response;
 
+import com.pizzapos.shared.tracing.TraceProvider;
 import org.springframework.http.HttpStatus;
+import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
 import java.util.List;
 
+@Component
 public class ResponseFactory {
 
-    private ResponseFactory() {
+    private final TraceProvider traceProvider;
+
+    public ResponseFactory(TraceProvider traceProvider) {
+        this.traceProvider = traceProvider;
     }
 
-    private static String getTraceId() {
-        // Por ahora no tenemos trazabilidad
-        return null;
+    public String getTraceId() {
+        return traceProvider.getTraceId();
     }
 
-    public static <T> ApiResponse<T> success(
+    public <T> ApiResponse<T> success(
             String message,
             T data
     ) {
@@ -29,7 +34,7 @@ public class ResponseFactory {
         );
     }
 
-    public static ApiErrorResponse error(
+    public ApiErrorResponse error(
             HttpStatus status,
             String message,
             List<String> details
@@ -46,7 +51,7 @@ public class ResponseFactory {
         );
     }
 
-    public static ApiErrorResponse error(
+    public ApiErrorResponse error(
             HttpStatus status,
             String message
     ) {

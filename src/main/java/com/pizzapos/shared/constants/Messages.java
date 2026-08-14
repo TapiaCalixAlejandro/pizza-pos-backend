@@ -17,4 +17,6 @@ public final class Messages {
 
     public static final String PRODUCT_NOT_FOUND = "Product not found.";
 
+    public static final String PRODUCTS_RETRIEVED = "Products retrieved successfully";
+
 }

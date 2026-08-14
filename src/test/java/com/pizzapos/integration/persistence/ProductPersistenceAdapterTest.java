@@ -5,7 +5,6 @@ import com.pizzapos.catalog.domain.enums.ProductType;
 import com.pizzapos.catalog.domain.model.Product;
 import com.pizzapos.catalog.infrastructure.persistence.adapter.ProductPersistenceAdapter;
 import com.pizzapos.catalog.infrastructure.persistence.entity.ProductEntity;
-import com.pizzapos.catalog.infrastructure.persistence.mapper.ProductPersistenceMapper;
 import com.pizzapos.catalog.infrastructure.persistence.mapper.ProductPersistenceMapperImpl;
 import com.pizzapos.catalog.infrastructure.persistence.repository.ProductJpaRepository;
 import com.pizzapos.support.PersistenceTest;
