@@ -6,6 +6,7 @@ import com.pizzapos.catalog.infrastructure.persistence.entity.ProductEntity;
 import com.pizzapos.catalog.infrastructure.persistence.mapper.ProductPersistenceMapper;
 import com.pizzapos.catalog.infrastructure.persistence.repository.ProductJpaRepository;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -33,27 +34,27 @@ public class ProductPersistenceAdapter implements ProductRepositoryPort {
     @Override
     public Optional<Product> findByName(String name) {
 
-        return productJpaRepository.findByName(name)
+        return productJpaRepository.findByNameAndDeletedAtIsNull(name)
                 .map(productMapper::toDomain);
     }
 
     @Override
     public boolean existsByName(String name) {
 
-        return productJpaRepository.existsByName(name);
+        return productJpaRepository.existsByNameAndDeletedAtIsNull(name);
     }
 
     @Override
     public Optional<Product> findById(Long id) {
 
-        return productJpaRepository.findById(id)
+        return productJpaRepository.findByIdAndDeletedAtIsNull(id)
                 .map(productMapper::toDomain);
     }
 
     @Override
     public List<Product> findAll() {
 
-        return productJpaRepository.findAll()
+        return productJpaRepository.findAllByDeletedAtIsNull()
                 .stream()
                 .map(productMapper::toDomain)
                 .toList();
@@ -61,7 +62,14 @@ public class ProductPersistenceAdapter implements ProductRepositoryPort {
 
     @Override
     public void deleteById(Long id) {
-        productJpaRepository.deleteById(id);
+
+        ProductEntity entity = productJpaRepository
+                .findByIdAndDeletedAtIsNull(id)
+                .orElseThrow();
+
+        entity.setDeletedAt(LocalDateTime.now());
+
+        productJpaRepository.save(entity);
     }
 
 }

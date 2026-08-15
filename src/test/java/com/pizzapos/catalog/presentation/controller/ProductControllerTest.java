@@ -4,11 +4,15 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.pizzapos.catalog.domain.enums.ProductType;
 import com.pizzapos.catalog.domain.model.Product;
 import com.pizzapos.catalog.domain.ports.in.CreateProductUseCase;
+import com.pizzapos.catalog.domain.ports.in.DeleteProductByIdUseCase;
 import com.pizzapos.catalog.domain.ports.in.GetAllProductsUseCase;
 import com.pizzapos.catalog.domain.ports.in.GetProductByIdUseCase;
 import com.pizzapos.catalog.presentation.dto.request.CreateProductRequest;
 import com.pizzapos.catalog.presentation.dto.response.ProductResponse;
 import com.pizzapos.catalog.presentation.mapper.ProductPresentationMapper;
+import com.pizzapos.shared.constants.Messages;
+import com.pizzapos.shared.exception.ResourceNotFoundException;
+import com.pizzapos.shared.response.ApiErrorResponse;
 import com.pizzapos.shared.response.ApiResponse;
 import com.pizzapos.shared.response.ResponseFactory;
 import com.pizzapos.support.ProductTestDataBuilder;
@@ -16,14 +20,14 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.http.HttpStatus;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.math.BigDecimal;
 import java.util.List;
 
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 import static org.mockito.Mockito.*;
@@ -45,6 +49,9 @@ public class ProductControllerTest {
 
     @MockitoBean
     private GetAllProductsUseCase getAllProductsUseCase;
+
+    @MockitoBean
+    private DeleteProductByIdUseCase deleteProductByIdUseCase;
 
     @MockitoBean
     private ProductPresentationMapper productPresentationMapper;
@@ -232,6 +239,76 @@ public class ProductControllerTest {
 
         verify(productPresentationMapper, times(1))
                 .toResponseList(List.of());
+    }
+
+    @Test
+    @DisplayName("Should delete product successfully")
+    void shouldDeleteProductSuccessfully() throws Exception {
+        // Given
+        Long productId = 1L;
+
+        ApiResponse<Void> apiResponse = new ApiResponse<>(
+                true,
+                "Product deleted successfully",
+                "test-trace-id",
+                null,
+                null
+        );
+
+        doNothing()
+                .when(deleteProductByIdUseCase)
+                .deleteProductById(productId);
+
+        when(responseFactory.<Void>success(
+                anyString(),
+                isNull()
+        )).thenReturn(apiResponse);
+
+        // When & Then
+        mockMvc.perform(
+                delete("/api/v1/products/{id}", productId)
+        )
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.message").value("Product deleted successfully"))
+                .andExpect(jsonPath("$.traceId").value("test-trace-id"));
+
+        verify(deleteProductByIdUseCase).deleteProductById(productId);
+        verify(responseFactory).success(anyString(), isNull());
+    }
+
+    @Test
+    @DisplayName("Should return 404 when product does not exist")
+    void shouldReturnNotFoundWhenProductDoesNotExist()  throws Exception {
+        // Given
+        Long productId = 999L;
+
+        ResourceNotFoundException exception =
+                new ResourceNotFoundException(Messages.PRODUCT_NOT_FOUND);
+
+        ApiErrorResponse errorResponse = new ApiErrorResponse();
+
+        doThrow(exception)
+                .when(deleteProductByIdUseCase)
+                .deleteProductById(productId);
+
+        when(responseFactory.error(
+                HttpStatus.NOT_FOUND,
+                Messages.PRODUCT_NOT_FOUND
+        )).thenReturn(errorResponse);
+
+        // When & Then
+        mockMvc.perform(
+                delete("/api/v1/products/{id}", productId)
+        )
+                .andExpect(status().isNotFound());
+
+        verify(deleteProductByIdUseCase).deleteProductById(productId);
+        verify(responseFactory)
+                .error(
+                        HttpStatus.NOT_FOUND,
+                        Messages.PRODUCT_NOT_FOUND
+                );
     }
 
 }
