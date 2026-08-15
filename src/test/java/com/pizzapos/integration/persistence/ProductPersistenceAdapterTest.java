@@ -169,16 +169,88 @@ public class ProductPersistenceAdapterTest extends PersistenceTest {
     }
 
     @Test
-    @DisplayName("Should delete product by id")
-    void shouldDeleteProductById() {
+    @DisplayName("Should soft delete product by id")
+    void shouldSoftDeleteProductById() {
         // Given
-        Product saved = adapter.save(ProductTestDataBuilder.aPizza().build());
+        Product saved = adapter.save(
+                ProductTestDataBuilder
+                        .aPizza()
+                        .build()
+        );
 
         // When
         adapter.deleteById(saved.getId());
 
         // Then
-        assertEquals(0, repository.count());
+        ProductEntity entity = repository.findById(saved.getId())
+                        .orElseThrow();
+        assertNotNull(entity.getDeletedAt());
+        assertTrue(adapter.findById(saved.getId()).isEmpty());
+    }
+
+    @Test
+    @DisplayName("Should not return soft deleted products")
+    void shouldNotReturnSoftDeletedProducts() {
+        // Given
+        Product pepperoni = adapter.save(
+                ProductTestDataBuilder
+                        .aPizza()
+                        .build()
+        );
+
+        adapter.save(
+                ProductTestDataBuilder
+                        .aPizza()
+                        .withName("Mexicana")
+                        .build()
+        );
+
+        adapter.deleteById(pepperoni.getId());
+
+        // When
+        List<Product> products = adapter.findAll();
+
+        // Then
+        assertEquals(1, products.size());
+        assertEquals("Mexicana", products.get(0).getName());
+    }
+
+    @Test
+    @DisplayName("Should not find a soft deleted product by name")
+    void shouldNotFindSoftDeletedProductByName() {
+        // Given
+        Product saved = adapter.save(
+                ProductTestDataBuilder
+                        .aPizza()
+                        .build()
+        );
+
+        adapter.deleteById(saved.getId());
+
+        // When
+        Optional<Product> result = adapter.findByName("Pepperoni");
+
+        // Then
+        assertTrue(result.isEmpty());
+    }
+
+    @Test
+    @DisplayName("Should return false when product is soft deleted")
+    void shouldReturnFalseWhenProductIsSoftDeleted() {
+        // Given
+        Product saved = adapter.save(
+                ProductTestDataBuilder
+                        .aPizza()
+                        .build()
+        );
+
+        adapter.deleteById(saved.getId());
+
+        // When
+        boolean exists = adapter.existsByName("Pepperoni");
+
+        // Then
+        assertFalse(exists);
     }
 
 }

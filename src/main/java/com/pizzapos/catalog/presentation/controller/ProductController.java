@@ -2,6 +2,7 @@ package com.pizzapos.catalog.presentation.controller;
 
 import com.pizzapos.catalog.domain.model.Product;
 import com.pizzapos.catalog.domain.ports.in.CreateProductUseCase;
+import com.pizzapos.catalog.domain.ports.in.DeleteProductByIdUseCase;
 import com.pizzapos.catalog.domain.ports.in.GetAllProductsUseCase;
 import com.pizzapos.catalog.domain.ports.in.GetProductByIdUseCase;
 import com.pizzapos.catalog.presentation.dto.request.CreateProductRequest;
@@ -32,6 +33,7 @@ public class ProductController {
     private final CreateProductUseCase createProductUseCase;
     private final GetProductByIdUseCase getProductByIdUseCase;
     private final GetAllProductsUseCase getAllProductsUseCase;
+    private final DeleteProductByIdUseCase deleteProductByIdUseCase;
     private final ProductPresentationMapper productPresentationMapper;
 
     public ProductController(
@@ -39,12 +41,14 @@ public class ProductController {
             CreateProductUseCase createProductUseCase,
             GetProductByIdUseCase getProductByIdUseCase,
             GetAllProductsUseCase getAllProductsUseCase,
+            DeleteProductByIdUseCase deleteProductByIdUseCase,
             ProductPresentationMapper productPresentationMapper
     ) {
         this.responseFactory = responseFactory;
         this.createProductUseCase = createProductUseCase;
         this.getProductByIdUseCase = getProductByIdUseCase;
         this.getAllProductsUseCase = getAllProductsUseCase;
+        this.deleteProductByIdUseCase = deleteProductByIdUseCase;
         this.productPresentationMapper = productPresentationMapper;
     }
 
@@ -122,6 +126,29 @@ public class ProductController {
         List<ProductResponse> response = productPresentationMapper.toResponseList(products);
 
         return ResponseEntity.ok(responseFactory.success(Messages.PRODUCTS_RETRIEVED, response));
+    }
+
+    @Operation(
+            summary = "Delete product by id",
+            description = "Soft deletes a product by its identifier"
+    )
+    @ApiResponses({
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "200",
+                    description = "Product deleted successfully"
+            ),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "404",
+                    description = "Product not found"
+            )
+    })
+    @DeleteMapping("/{id}")
+    public ResponseEntity<ApiResponse<Void>> deleteProductById(
+            @PathVariable Long id
+    ) {
+        deleteProductByIdUseCase.deleteProductById(id);
+
+        return ResponseEntity.ok(responseFactory.success(Messages.PRODUCT_DELETED, null));
     }
 
 }

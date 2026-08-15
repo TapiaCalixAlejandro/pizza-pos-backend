@@ -15,54 +15,54 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.when;
-import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-public class GetProductByIdServiceTest {
+public class DeleteProductByIdServiceTest {
 
     @Mock
     private ProductRepositoryPort repositoryPort;
 
     @InjectMocks
-    private GetProductByIdService byIdService;
+    private DeleteProductByIdService service;
 
     @Test
-    @DisplayName("")
-    void shouldReturnProductWhenProductExists() {
+    @DisplayName("Should delete product successfully when product exists")
+    void shouldDeleteProductSuccessfully() {
         // Given
-        Product product = ProductTestDataBuilder.aPizza().build();
+        Product product = ProductTestDataBuilder
+                .aPizza()
+                .build();
 
         when(repositoryPort.findById(1L))
                 .thenReturn(Optional.of(product));
 
         // When
-        Product result = byIdService.getProductById(1L);
+        service.deleteProductById(1L);
 
         // Then
-        assertNotNull(result);
-        assertEquals("Pepperoni", result.getName());
-
         verify(repositoryPort).findById(1L);
+        verify(repositoryPort).deleteById(1L);
     }
 
     @Test
-    @DisplayName("")
-    void shouldThrowExceptionWhenProductDoesNotExists() {
+    @DisplayName("Should throw ResourceNotFoundException when product does not exist")
+    void shouldThrowExceptionWhenProductDoesNotExist() {
         // Given
-        when(repositoryPort.findById(1L))
-                .thenReturn(Optional.empty());
+        Long productId = 1L;
+
+        when(repositoryPort.findById(productId)).thenReturn(Optional.empty());
 
         // When & Then
-        ResourceNotFoundException exception =
-                assertThrows(
-                        ResourceNotFoundException.class,
-                        () -> byIdService.getProductById(1L)
-                );
+        ResourceNotFoundException exception = assertThrows(
+                ResourceNotFoundException.class,
+                () -> service.deleteProductById(productId)
+        );
 
         assertEquals(Messages.PRODUCT_NOT_FOUND + " ID: " + 1L, exception.getMessage());
 
-        verify(repositoryPort).findById(1L);
+        verify(repositoryPort).findById(productId);
+        verify(repositoryPort, never()).deleteById(productId);
     }
 
 }
