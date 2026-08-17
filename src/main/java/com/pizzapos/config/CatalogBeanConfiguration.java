@@ -1,13 +1,7 @@
 package com.pizzapos.config;
 
-import com.pizzapos.catalog.application.service.CreateProductService;
-import com.pizzapos.catalog.application.service.DeleteProductByIdService;
-import com.pizzapos.catalog.application.service.GetAllProductsService;
-import com.pizzapos.catalog.application.service.GetProductByIdService;
-import com.pizzapos.catalog.domain.ports.in.CreateProductUseCase;
-import com.pizzapos.catalog.domain.ports.in.DeleteProductByIdUseCase;
-import com.pizzapos.catalog.domain.ports.in.GetAllProductsUseCase;
-import com.pizzapos.catalog.domain.ports.in.GetProductByIdUseCase;
+import com.pizzapos.catalog.application.service.*;
+import com.pizzapos.catalog.domain.ports.in.*;
 import com.pizzapos.catalog.domain.ports.out.ProductRepositoryPort;
 import com.pizzapos.catalog.infrastructure.persistence.adapter.ProductPersistenceAdapter;
 import com.pizzapos.catalog.infrastructure.persistence.mapper.ProductPersistenceMapper;
@@ -52,6 +46,13 @@ public class CatalogBeanConfiguration {
             ProductRepositoryPort repositoryPort) {
 
         return new DeleteProductByIdService(repositoryPort);
+    }
+
+    @Bean
+    public UpdateProductUseCase updateProductUseCase(
+            ProductRepositoryPort repositoryPort) {
+
+        return new UpdateProductService(repositoryPort);
     }
 
 }

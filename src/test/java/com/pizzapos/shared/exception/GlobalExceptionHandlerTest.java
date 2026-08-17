@@ -131,7 +131,7 @@ public class GlobalExceptionHandlerTest {
         FieldError priceError = new FieldError(
                 "createProductRequest",
                 "price",
-                "Price must be grater than zero."
+                "Price must be greater than zero."
         );
 
         when(bindingResult.getFieldErrors())
@@ -145,7 +145,7 @@ public class GlobalExceptionHandlerTest {
 
         List<String> details = List.of(
                 "Name is required.",
-                "Price must be grater than zero."
+                "Price must be greater than zero."
         );
 
         when(responseFactory.error(

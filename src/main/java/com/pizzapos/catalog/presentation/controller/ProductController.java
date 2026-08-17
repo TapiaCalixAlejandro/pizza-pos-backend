@@ -1,11 +1,9 @@
 package com.pizzapos.catalog.presentation.controller;
 
 import com.pizzapos.catalog.domain.model.Product;
-import com.pizzapos.catalog.domain.ports.in.CreateProductUseCase;
-import com.pizzapos.catalog.domain.ports.in.DeleteProductByIdUseCase;
-import com.pizzapos.catalog.domain.ports.in.GetAllProductsUseCase;
-import com.pizzapos.catalog.domain.ports.in.GetProductByIdUseCase;
+import com.pizzapos.catalog.domain.ports.in.*;
 import com.pizzapos.catalog.presentation.dto.request.CreateProductRequest;
+import com.pizzapos.catalog.presentation.dto.request.UpdateProductRequest;
 import com.pizzapos.catalog.presentation.dto.response.ProductResponse;
 import com.pizzapos.catalog.presentation.mapper.ProductPresentationMapper;
 import com.pizzapos.shared.constants.Messages;
@@ -30,6 +28,7 @@ import java.util.List;
 public class ProductController {
 
     private final ResponseFactory responseFactory;
+    private final UpdateProductUseCase updateProductUseCase;
     private final CreateProductUseCase createProductUseCase;
     private final GetProductByIdUseCase getProductByIdUseCase;
     private final GetAllProductsUseCase getAllProductsUseCase;
@@ -38,6 +37,7 @@ public class ProductController {
 
     public ProductController(
             ResponseFactory responseFactory,
+            UpdateProductUseCase updateProductUseCase,
             CreateProductUseCase createProductUseCase,
             GetProductByIdUseCase getProductByIdUseCase,
             GetAllProductsUseCase getAllProductsUseCase,
@@ -45,6 +45,7 @@ public class ProductController {
             ProductPresentationMapper productPresentationMapper
     ) {
         this.responseFactory = responseFactory;
+        this.updateProductUseCase = updateProductUseCase;
         this.createProductUseCase = createProductUseCase;
         this.getProductByIdUseCase = getProductByIdUseCase;
         this.getAllProductsUseCase = getAllProductsUseCase;
@@ -149,6 +150,45 @@ public class ProductController {
         deleteProductByIdUseCase.deleteProductById(id);
 
         return ResponseEntity.ok(responseFactory.success(Messages.PRODUCT_DELETED, null));
+    }
+
+    @Operation(
+            summary = "Update product by id",
+            description = "Updates an existing product in the catalog"
+    )
+    @ApiResponses({
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "200",
+                    description = "Product update successfully"
+            ),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "400",
+                    description = "Validation error"
+            ),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "404",
+                    description = "Product not found"
+            ),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "409",
+                    description = "Product already exists"
+            )
+    })
+    @PutMapping("/{id}")
+    public ResponseEntity<ApiResponse<ProductResponse>> updateProduct(
+            @PathVariable Long id,
+            @Valid @RequestBody UpdateProductRequest request
+    ) {
+        Product product = productPresentationMapper.toDomain(request);
+        Product updatedProduct = updateProductUseCase.updateProduct(id, product);
+        ProductResponse response = productPresentationMapper.toResponse(updatedProduct);
+
+        return ResponseEntity.ok(
+                responseFactory.success(
+                        Messages.PRODUCT_UPDATED,
+                        response
+                )
+        );
     }
 
 }

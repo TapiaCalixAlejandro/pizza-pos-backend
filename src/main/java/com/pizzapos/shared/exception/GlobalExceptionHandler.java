@@ -40,11 +40,14 @@ public class GlobalExceptionHandler {
                 .body(responseFactory.error(
                         HttpStatus.INTERNAL_SERVER_ERROR,
                         "An unexpected error occurred.",
-                        List.of(ex.getMessage())));
+                        List.of(ex.getMessage())
+                ));
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<ApiErrorResponse> handleValidationException(MethodArgumentNotValidException ex) {
+    public ResponseEntity<ApiErrorResponse> handleValidationException(
+            MethodArgumentNotValidException ex
+    ) {
         List<String> details = ex
                 .getBindingResult()
                 .getFieldErrors()
@@ -53,7 +56,13 @@ public class GlobalExceptionHandler {
                 .toList();
 
         return ResponseEntity.badRequest()
-                .body(responseFactory.error(HttpStatus.BAD_REQUEST, "Request validation failed.", details));
+                .body(
+                        responseFactory.error(
+                                HttpStatus.BAD_REQUEST,
+                                "Request validation failed.",
+                                details
+                        )
+                );
     }
 
 }
