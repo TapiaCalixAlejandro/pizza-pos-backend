@@ -3,14 +3,13 @@ package com.pizzapos.catalog.presentation.controller;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.pizzapos.catalog.domain.enums.ProductType;
 import com.pizzapos.catalog.domain.model.Product;
-import com.pizzapos.catalog.domain.ports.in.CreateProductUseCase;
-import com.pizzapos.catalog.domain.ports.in.DeleteProductByIdUseCase;
-import com.pizzapos.catalog.domain.ports.in.GetAllProductsUseCase;
-import com.pizzapos.catalog.domain.ports.in.GetProductByIdUseCase;
+import com.pizzapos.catalog.domain.ports.in.*;
 import com.pizzapos.catalog.presentation.dto.request.CreateProductRequest;
+import com.pizzapos.catalog.presentation.dto.request.UpdateProductRequest;
 import com.pizzapos.catalog.presentation.dto.response.ProductResponse;
 import com.pizzapos.catalog.presentation.mapper.ProductPresentationMapper;
 import com.pizzapos.shared.constants.Messages;
+import com.pizzapos.shared.exception.BusinessException;
 import com.pizzapos.shared.exception.ResourceNotFoundException;
 import com.pizzapos.shared.response.ApiErrorResponse;
 import com.pizzapos.shared.response.ApiResponse;
@@ -23,6 +22,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.http.HttpStatus;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
+import org.testcontainers.shaded.org.checkerframework.checker.units.qual.A;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -40,6 +40,9 @@ public class ProductControllerTest {
 
     @Autowired
     private ObjectMapper objectMapper;
+
+    @MockitoBean
+    private UpdateProductUseCase updateProductUseCase;
 
     @MockitoBean
     private CreateProductUseCase createProductUseCase;
@@ -309,6 +312,182 @@ public class ProductControllerTest {
                         HttpStatus.NOT_FOUND,
                         Messages.PRODUCT_NOT_FOUND
                 );
+    }
+
+    @Test
+    @DisplayName("Should update product successfully")
+    void shouldUpdateProductSuccessfully() throws Exception {
+        // Given
+        Long productId = 1L;
+
+        UpdateProductRequest request = new UpdateProductRequest();
+
+        request.setName("Mexicana");
+        request.setDescription("Mexican pizza");
+        request.setPrice(new BigDecimal("249.99"));
+        request.setImage("mexicana.png");
+        request.setProductType(ProductType.PIZZA);
+
+        Product product = ProductTestDataBuilder
+                .aPizza()
+                .withName("Mexicana")
+                .build();
+
+        product.setId(productId);
+        product.setDescription("Mexican pizza");
+        product.setPrice(new BigDecimal("249.99"));
+        product.setImage("mexicana.png");
+
+        ProductResponse productResponse = new ProductResponse();
+
+        productResponse.setId(productId);
+        productResponse.setName("Mexicana");
+        productResponse.setDescription("Mexicana pizza");
+        productResponse.setPrice(new BigDecimal("249.99"));
+
+        when(productPresentationMapper.toDomain(any(UpdateProductRequest.class)))
+                .thenReturn(product);
+        when(updateProductUseCase.updateProduct(productId, product))
+                .thenReturn(product);
+        when(productPresentationMapper.toResponse(product))
+                .thenReturn(productResponse);
+
+        ApiResponse<ProductResponse> apiResponse = new ApiResponse<>(
+                true,
+                Messages.PRODUCT_UPDATED,
+                "test-trace-id",
+                productResponse,
+                null
+        );
+
+        when(responseFactory.success(
+                anyString(),
+                any(ProductResponse.class)
+        )).thenReturn(apiResponse);
+
+        // When & Then
+        mockMvc.perform(
+                put("/api/v1/products/{id}", productId)
+                        .contentType("application/json")
+                        .content(objectMapper.writeValueAsString(request))
+        )
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.message").value(Messages.PRODUCT_UPDATED))
+                .andExpect(jsonPath("$.traceId").value("test-trace-id"))
+                .andExpect(jsonPath("$.data.id").value(1))
+                .andExpect(jsonPath("$.data.name").value("Mexicana"))
+                .andExpect(jsonPath("$.data.price").value(249.99));
+
+        verify(productPresentationMapper).toDomain(any(UpdateProductRequest.class));
+        verify(updateProductUseCase).updateProduct(productId, product);
+        verify(productPresentationMapper).toResponse(product);
+        verify(responseFactory).success(anyString(), eq(productResponse));
+    }
+
+    @Test
+    @DisplayName("Should return 404 when product update does not exist")
+    void shouldReturnNotFoundWhenProductUpdateDoesNotExist() throws Exception {
+        // Given
+        Long productId = 999L;
+
+        UpdateProductRequest request = new UpdateProductRequest();
+
+        request.setName("Mexicana");
+        request.setDescription("Mexican pizza");
+        request.setPrice(new BigDecimal("249.99"));
+        request.setProductType(ProductType.PIZZA);
+
+        Product product = ProductTestDataBuilder
+                .aPizza()
+                .withName("Mexicana")
+                .build();
+
+        ApiErrorResponse errorResponse = new ApiErrorResponse();
+
+        when(productPresentationMapper.toDomain(any(UpdateProductRequest.class)))
+                .thenReturn(product);
+        when(updateProductUseCase.updateProduct(productId, product))
+                .thenThrow(new ResourceNotFoundException(Messages.PRODUCT_NOT_FOUND));
+        when(responseFactory.error(
+                HttpStatus.NOT_FOUND,
+                Messages.PRODUCT_NOT_FOUND
+        )).thenReturn(errorResponse);
+
+        // When & Then
+        mockMvc.perform(
+                put("/api/v1/products/{id}", productId)
+                        .contentType("application/json")
+                        .content(objectMapper.writeValueAsString(request))
+        )
+                .andExpect(status().isNotFound());
+
+        verify(productPresentationMapper).toDomain(any(UpdateProductRequest.class));
+        verify(updateProductUseCase).updateProduct(productId, product);
+        verify(responseFactory).error(HttpStatus.NOT_FOUND, Messages.PRODUCT_NOT_FOUND);
+    }
+
+    @Test
+    @DisplayName("Should return bad request when product name already exists")
+    void shouldReturnBadRequestWhenProductNameAlreadyExists() throws Exception {
+        // Given
+        Long productId = 1L;
+
+        UpdateProductRequest request = new UpdateProductRequest();
+
+        request.setName("Mexicana");
+        request.setDescription("Mexicana Pizza");
+        request.setPrice(new BigDecimal("249.99"));
+        request.setProductType(ProductType.PIZZA);
+
+        Product product = ProductTestDataBuilder
+                .aPizza()
+                .withName("Mexicana")
+                .build();
+
+        ApiErrorResponse errorResponse = new ApiErrorResponse();
+
+        when(productPresentationMapper.toDomain(any(UpdateProductRequest.class)))
+                .thenReturn(product);
+        when(updateProductUseCase.updateProduct(productId, product))
+                .thenThrow(new BusinessException(Messages.PRODUCT_ALREADY_EXISTS));
+        when(responseFactory.error(
+                HttpStatus.BAD_REQUEST,
+                Messages.PRODUCT_ALREADY_EXISTS
+        )).thenReturn(errorResponse);
+
+        // When & Then
+        mockMvc.perform(
+                put("/api/v1/products/{id}", productId)
+                        .contentType("application/json")
+                        .content(objectMapper.writeValueAsString(request))
+        )
+                .andExpect(status().isBadRequest());
+
+        verify(productPresentationMapper).toDomain(any(UpdateProductRequest.class));
+        verify(updateProductUseCase).updateProduct(productId, product);
+        verify(responseFactory).error(HttpStatus.BAD_REQUEST, Messages.PRODUCT_ALREADY_EXISTS);
+    }
+
+    @Test
+    @DisplayName("Should return 400 when update request in invalid")
+    void shouldReturnBadRequestWhenUpdateRequestIsInvalid() throws Exception {
+        // Given
+        UpdateProductRequest request = new UpdateProductRequest();
+
+        request.setName("");
+        request.setPrice(BigDecimal.ZERO);
+        request.setProductType(null);
+
+        // When & Then
+        mockMvc.perform(
+                put("/api/v1/products/{id}", 1L)
+                        .contentType("application/json")
+                        .content(objectMapper.writeValueAsString(request))
+        )
+                .andExpect(status().isBadRequest());
+
+        verifyNoInteractions(updateProductUseCase);
     }
 
 }

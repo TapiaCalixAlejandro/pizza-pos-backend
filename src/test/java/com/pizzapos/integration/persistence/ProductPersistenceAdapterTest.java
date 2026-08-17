@@ -253,4 +253,36 @@ public class ProductPersistenceAdapterTest extends PersistenceTest {
         assertFalse(exists);
     }
 
+    @Test
+    @DisplayName("Should update product successfully")
+    void shouldUpdateProductSuccessfully() {
+        // Given
+        Product product = ProductTestDataBuilder
+                .aPizza()
+                .build();
+
+        Product saved = adapter.save(product);
+
+        saved.setName("Mexicana");
+        saved.setDescription("Mexican pizza");
+        saved.setPrice(new BigDecimal("249.99"));
+
+        // When
+        Product updated = adapter.save(saved);
+
+        // Then
+        assertNotNull(updated);
+        assertEquals(saved.getId(), updated.getId());
+        assertEquals("Mexicana", updated.getName());
+        assertEquals("Mexican pizza", updated.getDescription());
+        assertEquals(new BigDecimal("249.99"), updated.getPrice());
+        assertEquals(1, repository.count());
+
+        ProductEntity entity = repository.findById(saved.getId()).orElseThrow();
+
+        assertEquals("Mexicana", entity.getName());
+        assertEquals("Mexican pizza", entity.getDescription());
+        assertEquals(new BigDecimal("249.99"), entity.getPrice());
+    }
+
 }

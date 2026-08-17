@@ -1,30 +1,34 @@
 package com.pizzapos.catalog.presentation.dto.request;
 
 import com.pizzapos.catalog.domain.enums.ProductType;
-import jakarta.validation.constraints.*;
+import jakarta.validation.constraints.DecimalMin;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 
 import java.math.BigDecimal;
 
-public class CreateProductRequest {
+public class UpdateProductRequest {
 
-    @NotBlank(message = "Product name is required.")
-    @Size(max = 150, message = "Product name must not exceed 150 characters.")
+    @NotBlank(message = "Name is required.")
+    @Size(max = 150, message = "Name must not exceed 150 characters.")
     private String name;
 
-    @NotBlank(message = "Description is required")
     @Size(max = 500, message = "Description must not exceed 500 characters.")
     private String description;
 
     @NotNull(message = "Price is required.")
-    @Positive
     @DecimalMin(value = "0.01", message = "Price must be greater than zero.")
     private BigDecimal price;
 
-    @Size(max = 255)
+    @Size(max = 255, message = "Image must not exceed 255 characters.")
     private String image;
 
     @NotNull(message = "Product type is required.")
     private ProductType productType;
+
+    public UpdateProductRequest() {
+    }
 
     public String getName() {
         return name;
@@ -65,5 +69,4 @@ public class CreateProductRequest {
     public void setProductType(ProductType productType) {
         this.productType = productType;
     }
-
 }
