@@ -1,7 +1,7 @@
-package com.pizzapos.catalog.application.service;
+package com.pizzapos.catalog.application.service.product;
 
 import com.pizzapos.catalog.domain.model.Product;
-import com.pizzapos.catalog.domain.ports.in.GetAllProductsUseCase;
+import com.pizzapos.catalog.domain.ports.in.product.GetAllProductsUseCase;
 import com.pizzapos.catalog.domain.ports.out.ProductRepositoryPort;
 
 import java.util.List;

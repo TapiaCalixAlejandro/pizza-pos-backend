@@ -1,10 +1,16 @@
 package com.pizzapos.config;
 
-import com.pizzapos.catalog.application.service.*;
-import com.pizzapos.catalog.domain.ports.in.*;
+import com.pizzapos.catalog.application.service.ingredient.CreateIngredientService;
+import com.pizzapos.catalog.application.service.product.*;
+import com.pizzapos.catalog.domain.ports.in.ingredient.CreateIngredientUseCase;
+import com.pizzapos.catalog.domain.ports.in.product.*;
+import com.pizzapos.catalog.domain.ports.out.IngredientRepositoryPort;
 import com.pizzapos.catalog.domain.ports.out.ProductRepositoryPort;
+import com.pizzapos.catalog.infrastructure.persistence.adapter.IngredientPersistenceAdapter;
 import com.pizzapos.catalog.infrastructure.persistence.adapter.ProductPersistenceAdapter;
+import com.pizzapos.catalog.infrastructure.persistence.mapper.IngredientPersistenceMapper;
 import com.pizzapos.catalog.infrastructure.persistence.mapper.ProductPersistenceMapper;
+import com.pizzapos.catalog.infrastructure.persistence.repository.IngredientJpaRepository;
 import com.pizzapos.catalog.infrastructure.persistence.repository.ProductJpaRepository;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -14,10 +20,23 @@ public class CatalogBeanConfiguration {
 
     @Bean
     public ProductRepositoryPort productRepositoryPort(
-            ProductJpaRepository repository,
-            ProductPersistenceMapper mapper) {
+            ProductJpaRepository productJpaRepository,
+            ProductPersistenceMapper productPersistenceMapper
+    ) {
 
-        return new ProductPersistenceAdapter(repository, mapper);
+        return new ProductPersistenceAdapter(productJpaRepository, productPersistenceMapper);
+    }
+
+    @Bean
+    public IngredientRepositoryPort ingredientRepositoryPort(
+            IngredientJpaRepository ingredientJpaRepository,
+            IngredientPersistenceMapper ingredientPersistenceMapper
+    ) {
+
+        return new IngredientPersistenceAdapter(
+                ingredientJpaRepository,
+                ingredientPersistenceMapper
+        );
     }
 
     @Bean
@@ -53,6 +72,13 @@ public class CatalogBeanConfiguration {
             ProductRepositoryPort repositoryPort) {
 
         return new UpdateProductService(repositoryPort);
+    }
+
+    @Bean
+    public CreateIngredientUseCase createIngredientUseCase(
+            IngredientRepositoryPort ingredientRepositoryPort) {
+
+        return new CreateIngredientService(ingredientRepositoryPort);
     }
 
 }

@@ -1,33 +1,26 @@
-package com.pizzapos.catalog.presentation.dto.request;
+package com.pizzapos.catalog.presentation.dto.product.response;
 
+import com.pizzapos.catalog.domain.enums.ProductStatus;
 import com.pizzapos.catalog.domain.enums.ProductType;
-import jakarta.validation.constraints.DecimalMin;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Size;
 
 import java.math.BigDecimal;
 
-public class UpdateProductRequest {
+public class ProductResponse {
 
-    @NotBlank(message = "Name is required.")
-    @Size(max = 150, message = "Name must not exceed 150 characters.")
+    private Long id;
     private String name;
-
-    @Size(max = 500, message = "Description must not exceed 500 characters.")
     private String description;
-
-    @NotNull(message = "Price is required.")
-    @DecimalMin(value = "0.01", message = "Price must be greater than zero.")
     private BigDecimal price;
-
-    @Size(max = 255, message = "Image must not exceed 255 characters.")
     private String image;
-
-    @NotNull(message = "Product type is required.")
     private ProductType productType;
+    private ProductStatus productStatus;
 
-    public UpdateProductRequest() {
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
     }
 
     public String getName() {
@@ -68,5 +61,13 @@ public class UpdateProductRequest {
 
     public void setProductType(ProductType productType) {
         this.productType = productType;
+    }
+
+    public ProductStatus getProductStatus() {
+        return productStatus;
+    }
+
+    public void setProductStatus(ProductStatus productStatus) {
+        this.productStatus = productStatus;
     }
 }

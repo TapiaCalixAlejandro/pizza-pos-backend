@@ -1,10 +1,10 @@
 package com.pizzapos.catalog.presentation.controller;
 
 import com.pizzapos.catalog.domain.model.Product;
-import com.pizzapos.catalog.domain.ports.in.*;
-import com.pizzapos.catalog.presentation.dto.request.CreateProductRequest;
-import com.pizzapos.catalog.presentation.dto.request.UpdateProductRequest;
-import com.pizzapos.catalog.presentation.dto.response.ProductResponse;
+import com.pizzapos.catalog.domain.ports.in.product.*;
+import com.pizzapos.catalog.presentation.dto.product.request.CreateProductRequest;
+import com.pizzapos.catalog.presentation.dto.product.request.UpdateProductRequest;
+import com.pizzapos.catalog.presentation.dto.product.response.ProductResponse;
 import com.pizzapos.catalog.presentation.mapper.ProductPresentationMapper;
 import com.pizzapos.shared.constants.Messages;
 import com.pizzapos.shared.response.ApiResponse;

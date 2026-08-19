@@ -1,4 +1,4 @@
-package com.pizzapos.catalog.application.service;
+package com.pizzapos.catalog.application.service.product;
 
 import com.pizzapos.catalog.domain.enums.ProductStatus;
 import com.pizzapos.catalog.domain.enums.ProductType;
