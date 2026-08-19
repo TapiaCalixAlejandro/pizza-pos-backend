@@ -1,4 +1,4 @@
-package com.pizzapos.catalog.domain.ports.in;
+package com.pizzapos.catalog.domain.ports.in.product;
 
 public interface DeleteProductByIdUseCase {
 

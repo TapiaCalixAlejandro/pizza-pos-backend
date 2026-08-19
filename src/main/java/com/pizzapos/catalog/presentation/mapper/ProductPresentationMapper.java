@@ -1,9 +1,9 @@
 package com.pizzapos.catalog.presentation.mapper;
 
 import com.pizzapos.catalog.domain.model.Product;
-import com.pizzapos.catalog.presentation.dto.request.CreateProductRequest;
-import com.pizzapos.catalog.presentation.dto.request.UpdateProductRequest;
-import com.pizzapos.catalog.presentation.dto.response.ProductResponse;
+import com.pizzapos.catalog.presentation.dto.product.request.CreateProductRequest;
+import com.pizzapos.catalog.presentation.dto.product.request.UpdateProductRequest;
+import com.pizzapos.catalog.presentation.dto.product.response.ProductResponse;
 import com.pizzapos.config.CentralMapperConfig;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;

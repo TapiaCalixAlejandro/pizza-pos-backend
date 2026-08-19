@@ -3,7 +3,7 @@ package com.pizzapos.catalog.presentation.mapper;
 import com.pizzapos.catalog.domain.enums.ProductStatus;
 import com.pizzapos.catalog.domain.enums.ProductType;
 import com.pizzapos.catalog.domain.model.Product;
-import com.pizzapos.catalog.presentation.dto.response.ProductResponse;
+import com.pizzapos.catalog.presentation.dto.product.response.ProductResponse;
 import com.pizzapos.support.ProductTestDataBuilder;
 import org.junit.jupiter.api.Test;
 import org.mapstruct.factory.Mappers;

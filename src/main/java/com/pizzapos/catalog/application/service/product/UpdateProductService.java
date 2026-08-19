@@ -1,7 +1,7 @@
-package com.pizzapos.catalog.application.service;
+package com.pizzapos.catalog.application.service.product;
 
 import com.pizzapos.catalog.domain.model.Product;
-import com.pizzapos.catalog.domain.ports.in.UpdateProductUseCase;
+import com.pizzapos.catalog.domain.ports.in.product.UpdateProductUseCase;
 import com.pizzapos.catalog.domain.ports.out.ProductRepositoryPort;
 import com.pizzapos.shared.constants.Messages;
 import com.pizzapos.shared.exception.BusinessException;
