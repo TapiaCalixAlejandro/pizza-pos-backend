@@ -14,8 +14,9 @@ on:
     - synchronize
     - reopened
 
-jobs:
+  workflow_dispatch:
 
+jobs:
   build:
     name: Build and SonarQube Analysis
     runs-on: ubuntu-latest
