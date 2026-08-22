@@ -9,7 +9,7 @@ import java.math.BigDecimal;
 
 public class IngredientTestDataBuilder {
 
-    private Long id                 = 1L;
+    private Long id;
     private String name             = "Mozzarella";
     private IngredientUnit unit     = IngredientUnit.KILOGRAM;
     private BigDecimal stock        = new BigDecimal("20");

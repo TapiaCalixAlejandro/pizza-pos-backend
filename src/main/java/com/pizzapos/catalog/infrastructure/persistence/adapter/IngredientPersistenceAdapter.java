@@ -53,7 +53,9 @@ public class IngredientPersistenceAdapter implements IngredientRepositoryPort {
 
     @Override
     public boolean existsByName(String name) {
-        return false;
+
+        return ingredientJpaRepository
+                .existsByNameAndDeletedAtIsNull(name);
     }
 
     @Override
