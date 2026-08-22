@@ -5,6 +5,7 @@ import com.pizzapos.catalog.domain.enums.IngredientStatus;
 import com.pizzapos.catalog.domain.enums.IngredientUnit;
 import com.pizzapos.catalog.domain.model.Ingredient;
 import com.pizzapos.catalog.domain.ports.in.ingredient.CreateIngredientUseCase;
+import com.pizzapos.catalog.domain.ports.in.ingredient.GetAllIngredientsUseCase;
 import com.pizzapos.catalog.domain.ports.in.ingredient.GetIngredientByIdUseCase;
 import com.pizzapos.catalog.presentation.dto.ingredient.request.CreateIngredientRequest;
 import com.pizzapos.catalog.presentation.dto.ingredient.response.IngredientResponse;
@@ -24,8 +25,10 @@ import org.springframework.http.HttpStatus;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
+import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -34,6 +37,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -50,6 +54,9 @@ public class IngredientControllerTest {
 
     @MockitoBean
     private CreateIngredientUseCase createIngredientUseCase;
+
+    @MockitoBean
+    private GetAllIngredientsUseCase getAllIngredientsUseCase;
 
     @MockitoBean
     private GetIngredientByIdUseCase getIngredientByIdUseCase;
@@ -267,6 +274,106 @@ public class IngredientControllerTest {
         verify(getIngredientByIdUseCase)
                 .getIngredientById(ingredientId);
         verify(responseFactory).error(HttpStatus.NOT_FOUND, Messages.INGREDIENT_NOT_FOUND);
+    }
+
+    @Test
+    @DisplayName("Should return all products successfully")
+    void shouldReturnAllProductsSuccessfully() throws Exception {
+        // Given
+        Ingredient mozzarella = new Ingredient();
+        mozzarella.setId(1L);
+        mozzarella.setName("Mozzarella");
+        mozzarella.setUnit(IngredientUnit.KILOGRAM);
+        mozzarella.setStock(new BigDecimal("20"));
+        mozzarella.setMinimumStock(new BigDecimal("5"));
+        mozzarella.setCost(new BigDecimal("180.00"));
+        mozzarella.setStatus(IngredientStatus.ACTIVE);
+
+        IngredientResponse ingredientResponse = new IngredientResponse();
+        ingredientResponse.setId(1L);
+        ingredientResponse.setName("Mozzarella");
+        ingredientResponse.setUnit(IngredientUnit.KILOGRAM);
+        ingredientResponse.setStock(new BigDecimal("20"));
+        ingredientResponse.setMinimumStock(new BigDecimal("5"));
+        ingredientResponse.setCost(new BigDecimal("180.00"));
+        ingredientResponse.setStatus(IngredientStatus.ACTIVE);
+
+        when(getAllIngredientsUseCase.getAllIngredients()).thenReturn(List.of(mozzarella));
+        when(ingredientPresentationMapper.toResponseList(List.of(mozzarella))).thenReturn(List.of(ingredientResponse));
+
+        ApiResponse<List<IngredientResponse>> apiResponse = new ApiResponse<>(
+                true,
+                "Ingredients retrieved successfully",
+                "test-trace-id",
+                List.of(ingredientResponse),
+                null
+        );
+
+        when(responseFactory.<List<IngredientResponse>>success(
+                anyString(),
+                anyList()
+        )).thenReturn(apiResponse);
+
+        // When & Then
+        mockMvc.perform(
+                get("/api/v1/ingredients")
+        )
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.traceId").value("test-trace-id"))
+                .andExpect(jsonPath("$.data").isArray())
+                .andExpect(jsonPath("$.data.length()").value(1))
+                .andExpect(jsonPath("$.data[0].id").value(1))
+                .andExpect(jsonPath("$.data[0].name").value("Mozzarella"))
+                .andExpect(jsonPath("$.data[0].unit").value("KILOGRAM"))
+                .andExpect(jsonPath("$.data[0].stock").value(20))
+                .andExpect(jsonPath("$.data[0].minimumStock").value(5))
+                .andExpect(jsonPath("$.data[0].cost").value(180.00))
+                .andExpect(jsonPath("$.data[0].status").value("ACTIVE"));
+
+        verify(getAllIngredientsUseCase, times(1))
+                .getAllIngredients();
+        verify(ingredientPresentationMapper, times(1))
+                .toResponseList(List.of(mozzarella));
+        verify(responseFactory, times(1))
+                .success(anyString(), eq(List.of(ingredientResponse)));
+    }
+
+    @Test
+    @DisplayName("Should return empty list when there are no ingredients")
+    void shouldReturnEmptyListWhenThereAreNoIngredients() throws Exception {
+        // Given
+        when(getAllIngredientsUseCase.getAllIngredients())
+                .thenReturn(List.of());
+        when(ingredientPresentationMapper.toResponseList(List.of()))
+                .thenReturn(List.of());
+
+        ApiResponse<List<IngredientResponse>> apiResponse = new ApiResponse<>(
+                true,
+                "Ingredients retrieved successfully",
+                "test-trace-id",
+                List.of(),
+                null
+        );
+
+        when(responseFactory.<List<IngredientResponse>>success(
+                anyString(),
+                anyList()
+        )).thenReturn(apiResponse);
+
+        // When & Then
+        mockMvc.perform(
+                get("/api/v1/ingredients")
+        )
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.data").isArray())
+                .andExpect(jsonPath("$.data.length()").value(0));
+
+        verify(getAllIngredientsUseCase, times(1))
+                .getAllIngredients();
+        verify(ingredientPresentationMapper, times(1))
+                .toResponseList(List.of());
     }
 
 }

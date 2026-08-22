@@ -1,9 +1,11 @@
 package com.pizzapos.config;
 
 import com.pizzapos.catalog.application.service.ingredient.CreateIngredientService;
+import com.pizzapos.catalog.application.service.ingredient.GetAllIngredientsService;
 import com.pizzapos.catalog.application.service.ingredient.GetIngredientByIdService;
 import com.pizzapos.catalog.application.service.product.*;
 import com.pizzapos.catalog.domain.ports.in.ingredient.CreateIngredientUseCase;
+import com.pizzapos.catalog.domain.ports.in.ingredient.GetAllIngredientsUseCase;
 import com.pizzapos.catalog.domain.ports.in.ingredient.GetIngredientByIdUseCase;
 import com.pizzapos.catalog.domain.ports.in.product.*;
 import com.pizzapos.catalog.domain.ports.out.IngredientRepositoryPort;
@@ -88,6 +90,13 @@ public class CatalogBeanConfiguration {
             IngredientRepositoryPort ingredientRepositoryPort) {
 
         return new GetIngredientByIdService(ingredientRepositoryPort);
+    }
+
+    @Bean
+    public GetAllIngredientsUseCase getAllIngredientsUseCase(
+            IngredientRepositoryPort ingredientRepositoryPort) {
+
+        return new GetAllIngredientsService(ingredientRepositoryPort);
     }
 
 }

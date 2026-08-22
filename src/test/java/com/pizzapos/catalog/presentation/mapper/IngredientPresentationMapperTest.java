@@ -11,6 +11,7 @@ import org.junit.jupiter.api.Test;
 import org.mapstruct.factory.Mappers;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -63,6 +64,30 @@ public class IngredientPresentationMapperTest {
         assertEquals(new BigDecimal("5"), ingredient.getMinimumStock());
         assertEquals(new BigDecimal("180.00"), ingredient.getCost());
         assertEquals(IngredientStatus.ACTIVE, ingredient.getStatus());
+    }
+
+    @Test
+    @DisplayName("Should map ingredient list to ingredient response list")
+    void shouldMapIngredientListToIngredientResponseList() {
+        // Given
+        Ingredient ingredient = IngredientTestDataBuilder
+                .anIngredient()
+                .build();
+
+        Ingredient mass = IngredientTestDataBuilder
+                .anIngredient()
+                .withName("Mass")
+                .build();
+
+        // When
+        List<IngredientResponse> response =
+                mapper.toResponseList(List.of(ingredient, mass));
+
+        // Then
+        assertNotNull(response);
+        assertEquals(2, response.size());
+        assertEquals("Mozzarella", response.get(0).getName());
+        assertEquals("Mass", response.get(1).getName());
     }
 
 }

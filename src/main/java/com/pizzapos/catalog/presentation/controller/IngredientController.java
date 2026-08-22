@@ -2,6 +2,7 @@ package com.pizzapos.catalog.presentation.controller;
 
 import com.pizzapos.catalog.domain.model.Ingredient;
 import com.pizzapos.catalog.domain.ports.in.ingredient.CreateIngredientUseCase;
+import com.pizzapos.catalog.domain.ports.in.ingredient.GetAllIngredientsUseCase;
 import com.pizzapos.catalog.domain.ports.in.ingredient.GetIngredientByIdUseCase;
 import com.pizzapos.catalog.presentation.dto.ingredient.request.CreateIngredientRequest;
 import com.pizzapos.catalog.presentation.dto.ingredient.response.IngredientResponse;
@@ -22,6 +23,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/api/v1/ingredients")
 @Tag(
@@ -32,17 +35,20 @@ public class IngredientController {
 
     private final ResponseFactory responseFactory;
     private final CreateIngredientUseCase createIngredientUseCase;
+    private final GetAllIngredientsUseCase getAllIngredientsUseCase;
     private final GetIngredientByIdUseCase getIngredientByIdUseCase;
     private final IngredientPresentationMapper ingredientPresentationMapper;
 
     public IngredientController(
             ResponseFactory responseFactory,
             CreateIngredientUseCase createIngredientUseCase,
+            GetAllIngredientsUseCase getAllIngredientsUseCase,
             GetIngredientByIdUseCase getIngredientByIdUseCase,
             IngredientPresentationMapper ingredientPresentationMapper
     ) {
         this.responseFactory = responseFactory;
         this.createIngredientUseCase = createIngredientUseCase;
+        this.getAllIngredientsUseCase = getAllIngredientsUseCase;
         this.getIngredientByIdUseCase = getIngredientByIdUseCase;
         this.ingredientPresentationMapper = ingredientPresentationMapper;
     }
@@ -103,6 +109,24 @@ public class IngredientController {
         IngredientResponse response = ingredientPresentationMapper.toResponse(ingredient);
 
         return ResponseEntity.ok(responseFactory.success(Messages.PRODUCT_FOUND, response));
+    }
+
+    @Operation(
+            summary = "Get all ingredients",
+            description = "Returns all ingredients available in the catalog"
+    )
+    @ApiResponses({
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "200",
+                    description = "Ingredients retrieved successfully"
+            )
+    })
+    @GetMapping
+    public ResponseEntity<ApiResponse<List<IngredientResponse>>> getAllIngredients() {
+        List<Ingredient> ingredients = getAllIngredientsUseCase.getAllIngredients();
+        List<IngredientResponse> ingredientResponses = ingredientPresentationMapper.toResponseList(ingredients);
+
+        return ResponseEntity.ok(responseFactory.success(Messages.INGREDIENTS_RETRIEVED, ingredientResponses));
     }
 
 }

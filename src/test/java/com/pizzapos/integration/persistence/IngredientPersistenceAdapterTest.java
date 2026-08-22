@@ -17,6 +17,7 @@ import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.context.annotation.Import;
 
 import java.math.BigDecimal;
+import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -152,6 +153,21 @@ public class IngredientPersistenceAdapterTest extends PersistenceTest {
         // Then
         assertTrue(result.isPresent());
         assertEquals(saved.getId(), result.get().getId());
+    }
+
+    @Test
+    @DisplayName("Should return all ingredients")
+    void shouldReturnAllIngredients() {
+        // Given
+        persistenceAdapter.save(IngredientTestDataBuilder.anIngredient().build());
+
+        persistenceAdapter.save(IngredientTestDataBuilder.anIngredient().withName("Mass").build());
+
+        // When
+        List<Ingredient> ingredients = persistenceAdapter.findAll();
+
+        // Then
+        assertEquals(2, ingredients.size());
     }
 
 }
