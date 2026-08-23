@@ -48,7 +48,12 @@ public class IngredientPersistenceAdapter implements IngredientRepositoryPort {
 
     @Override
     public List<Ingredient> findAll() {
-        return List.of();
+
+        return ingredientJpaRepository
+                .findAllByDeletedAtIsNull()
+                .stream()
+                .map(ingredientPersistenceMapper::toDomain)
+                .toList();
     }
 
     @Override

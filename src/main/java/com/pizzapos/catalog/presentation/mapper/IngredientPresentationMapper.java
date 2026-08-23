@@ -6,13 +6,16 @@ import com.pizzapos.catalog.presentation.dto.ingredient.response.IngredientRespo
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
+import java.util.List;
+
 @Mapper(componentModel = "spring")
 public interface IngredientPresentationMapper {
-
     
     @Mapping(target = "status", constant = "ACTIVE")
     Ingredient toDomain(CreateIngredientRequest request);
 
     IngredientResponse toResponse(Ingredient ingredient);
+
+    List<IngredientResponse> toResponseList(List<Ingredient> ingredients);
 
 }
