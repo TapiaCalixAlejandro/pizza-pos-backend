@@ -170,4 +170,69 @@ public class IngredientPersistenceAdapterTest extends PersistenceTest {
         assertEquals(2, ingredients.size());
     }
 
+    @Test
+    @DisplayName("Should soft delete ingredient by id")
+    void shouldSoftDeleteIngredientById() {
+        // Given
+        Ingredient ingredient = persistenceAdapter.save(
+                IngredientTestDataBuilder
+                        .anIngredient()
+                        .build()
+        );
+
+        persistenceAdapter.save(
+                IngredientTestDataBuilder
+                        .anIngredient()
+                        .withName("Champinon")
+                        .build()
+        );
+
+        persistenceAdapter.deleteById(ingredient.getId());
+
+        // When
+        List<Ingredient> ingredients = persistenceAdapter.findAll();
+
+        // Then
+        assertEquals(1, ingredients.size());
+        assertEquals("Champinon", ingredients.get(0).getName());
+    }
+
+    @Test
+    @DisplayName("Should not find a soft deleted ingredient by name")
+    void shouldNotFindSoftDeletedIngredientByName() {
+        // Given
+        Ingredient ingredient = persistenceAdapter.save(
+                IngredientTestDataBuilder
+                        .anIngredient()
+                        .build()
+        );
+
+        persistenceAdapter.deleteById(ingredient.getId());
+
+        // When
+        Optional<Ingredient> result = persistenceAdapter.findByName("Mozzarella");
+
+        // Then
+        assertTrue(result.isEmpty());
+    }
+
+    @Test
+    @DisplayName("Should return false when ingredient is soft deleted")
+    void shouldReturnFalseWhenIngredientIsSoftDeleted() {
+        // Given
+        Ingredient ingredient = persistenceAdapter.save(
+                IngredientTestDataBuilder
+                        .anIngredient()
+                        .build()
+        );
+
+        persistenceAdapter.deleteById(ingredient.getId());
+
+        // When
+        boolean exists = persistenceAdapter.existsByName("Mozzarella");
+
+        // Then
+        assertFalse(exists);
+    }
+
 }

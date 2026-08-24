@@ -5,6 +5,7 @@ import com.pizzapos.catalog.domain.enums.IngredientStatus;
 import com.pizzapos.catalog.domain.enums.IngredientUnit;
 import com.pizzapos.catalog.domain.model.Ingredient;
 import com.pizzapos.catalog.domain.ports.in.ingredient.CreateIngredientUseCase;
+import com.pizzapos.catalog.domain.ports.in.ingredient.DeleteIngredientUseCase;
 import com.pizzapos.catalog.domain.ports.in.ingredient.GetAllIngredientsUseCase;
 import com.pizzapos.catalog.domain.ports.in.ingredient.GetIngredientByIdUseCase;
 import com.pizzapos.catalog.presentation.dto.ingredient.request.CreateIngredientRequest;
@@ -27,10 +28,13 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isNull;
+import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -54,6 +58,9 @@ public class IngredientControllerTest {
 
     @MockitoBean
     private CreateIngredientUseCase createIngredientUseCase;
+
+    @MockitoBean
+    private DeleteIngredientUseCase deleteIngredientUseCase;
 
     @MockitoBean
     private GetAllIngredientsUseCase getAllIngredientsUseCase;
@@ -374,6 +381,76 @@ public class IngredientControllerTest {
                 .getAllIngredients();
         verify(ingredientPresentationMapper, times(1))
                 .toResponseList(List.of());
+    }
+
+    @Test
+    @DisplayName("Should soft delete ingredient successfully")
+    void shouldSoftDeleteIngredientSuccessfully() throws Exception {
+        // Given
+        Long ingredientId = 1L;
+
+        ApiResponse<Void> apiResponse = new ApiResponse<>(
+                true,
+                "Ingredient deleted successfully",
+                "test-trace-id",
+                null,
+                null
+        );
+
+        doNothing()
+                .when(deleteIngredientUseCase)
+                .deletedIngredientById(ingredientId);
+
+        when(responseFactory.<Void>success(
+                anyString(),
+                isNull()
+        )).thenReturn(apiResponse);
+
+        // When & Then
+        mockMvc.perform(
+                delete("/api/v1/ingredients/{id}", ingredientId)
+        )
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.message").value("Ingredient deleted successfully"))
+                .andExpect(jsonPath("$.traceId").value("test-trace-id"));
+
+        verify(deleteIngredientUseCase).deletedIngredientById(ingredientId);
+        verify(responseFactory).success(anyString(), isNull());
+    }
+
+    @Test
+    @DisplayName("Should return 404 when ingredient does not exist")
+    void shouldReturnNotFoundIngredientDoesNotExist() throws Exception {
+        // Given
+        Long ingredientId = 1L;
+
+        ResourceNotFoundException exception =
+                new ResourceNotFoundException(Messages.INGREDIENT_NOT_FOUND);
+
+        ApiErrorResponse errorResponse = new ApiErrorResponse();
+
+        doThrow(exception)
+                .when(deleteIngredientUseCase)
+                .deletedIngredientById(ingredientId);
+
+        when(responseFactory.error(
+                HttpStatus.NOT_FOUND,
+                Messages.INGREDIENT_NOT_FOUND
+        )).thenReturn(errorResponse);
+
+        // When & Then
+        mockMvc.perform(
+                delete("/api/v1/ingredients/{id}", ingredientId)
+        )
+                .andExpect(status().isNotFound());
+
+        verify(deleteIngredientUseCase).deletedIngredientById(ingredientId);
+        verify(responseFactory)
+                .error(
+                        HttpStatus.NOT_FOUND,
+                        Messages.INGREDIENT_NOT_FOUND
+                );
     }
 
 }

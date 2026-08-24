@@ -2,6 +2,7 @@ package com.pizzapos.catalog.presentation.controller;
 
 import com.pizzapos.catalog.domain.model.Ingredient;
 import com.pizzapos.catalog.domain.ports.in.ingredient.CreateIngredientUseCase;
+import com.pizzapos.catalog.domain.ports.in.ingredient.DeleteIngredientUseCase;
 import com.pizzapos.catalog.domain.ports.in.ingredient.GetAllIngredientsUseCase;
 import com.pizzapos.catalog.domain.ports.in.ingredient.GetIngredientByIdUseCase;
 import com.pizzapos.catalog.presentation.dto.ingredient.request.CreateIngredientRequest;
@@ -16,6 +17,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -35,6 +37,7 @@ public class IngredientController {
 
     private final ResponseFactory responseFactory;
     private final CreateIngredientUseCase createIngredientUseCase;
+    private final DeleteIngredientUseCase deleteIngredientUseCase;
     private final GetAllIngredientsUseCase getAllIngredientsUseCase;
     private final GetIngredientByIdUseCase getIngredientByIdUseCase;
     private final IngredientPresentationMapper ingredientPresentationMapper;
@@ -42,12 +45,14 @@ public class IngredientController {
     public IngredientController(
             ResponseFactory responseFactory,
             CreateIngredientUseCase createIngredientUseCase,
+            DeleteIngredientUseCase deleteIngredientUseCase,
             GetAllIngredientsUseCase getAllIngredientsUseCase,
             GetIngredientByIdUseCase getIngredientByIdUseCase,
             IngredientPresentationMapper ingredientPresentationMapper
     ) {
         this.responseFactory = responseFactory;
         this.createIngredientUseCase = createIngredientUseCase;
+        this.deleteIngredientUseCase = deleteIngredientUseCase;
         this.getAllIngredientsUseCase = getAllIngredientsUseCase;
         this.getIngredientByIdUseCase = getIngredientByIdUseCase;
         this.ingredientPresentationMapper = ingredientPresentationMapper;
@@ -127,6 +132,15 @@ public class IngredientController {
         List<IngredientResponse> ingredientResponses = ingredientPresentationMapper.toResponseList(ingredients);
 
         return ResponseEntity.ok(responseFactory.success(Messages.INGREDIENTS_RETRIEVED, ingredientResponses));
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<ApiResponse<Void>> deleteIngredientById(
+            @PathVariable Long id
+    ) {
+        deleteIngredientUseCase.deletedIngredientById(id);
+
+        return ResponseEntity.ok(responseFactory.success(Messages.INGREDIENT_DELETED, null));
     }
 
 }
