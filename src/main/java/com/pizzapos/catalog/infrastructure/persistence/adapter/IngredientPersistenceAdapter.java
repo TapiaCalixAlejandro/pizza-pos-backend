@@ -6,6 +6,7 @@ import com.pizzapos.catalog.infrastructure.persistence.entity.IngredientEntity;
 import com.pizzapos.catalog.infrastructure.persistence.mapper.IngredientPersistenceMapper;
 import com.pizzapos.catalog.infrastructure.persistence.repository.IngredientJpaRepository;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -65,6 +66,12 @@ public class IngredientPersistenceAdapter implements IngredientRepositoryPort {
 
     @Override
     public void deleteById(Long id) {
+        IngredientEntity entity = ingredientJpaRepository
+                .findByIdAndDeletedAtIsNull(id)
+                .orElseThrow();
 
+        entity.setDeletedAt(LocalDateTime.now());
+
+        ingredientJpaRepository.save(entity);
     }
 }
