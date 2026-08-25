@@ -8,6 +8,7 @@ import com.pizzapos.catalog.domain.ports.in.ingredient.CreateIngredientUseCase;
 import com.pizzapos.catalog.domain.ports.in.ingredient.DeleteIngredientUseCase;
 import com.pizzapos.catalog.domain.ports.in.ingredient.GetAllIngredientsUseCase;
 import com.pizzapos.catalog.domain.ports.in.ingredient.GetIngredientByIdUseCase;
+import com.pizzapos.catalog.domain.ports.in.ingredient.UpdateIngredientUseCase;
 import com.pizzapos.catalog.presentation.dto.ingredient.request.CreateIngredientRequest;
 import com.pizzapos.catalog.presentation.dto.ingredient.response.IngredientResponse;
 import com.pizzapos.catalog.presentation.mapper.IngredientPresentationMapper;
@@ -37,6 +38,7 @@ import static org.mockito.Mockito.verifyNoInteractions;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -61,6 +63,9 @@ public class IngredientControllerTest {
 
     @MockitoBean
     private DeleteIngredientUseCase deleteIngredientUseCase;
+
+    @MockitoBean
+    private UpdateIngredientUseCase updateIngredientUseCase;
 
     @MockitoBean
     private GetAllIngredientsUseCase getAllIngredientsUseCase;
@@ -451,6 +456,189 @@ public class IngredientControllerTest {
                         HttpStatus.NOT_FOUND,
                         Messages.INGREDIENT_NOT_FOUND
                 );
+    }
+
+    @Test
+    @DisplayName("Should update ingredient successfully")
+    void shouldUpdateIngredientSuccessfully() throws Exception {
+        // Given
+        Long ingredientId = 1L;
+
+        CreateIngredientRequest request = new CreateIngredientRequest();
+
+        request.setName("Mass");
+        request.setUnit(IngredientUnit.KILOGRAM);
+        request.setStock(new BigDecimal("20"));
+        request.setMinimumStock(new BigDecimal("5"));
+        request.setCost(new BigDecimal("180.00"));
+
+        Ingredient ingredient = IngredientTestDataBuilder
+                .anIngredient()
+                .withName("Mass")
+                .build();
+
+        ingredient.setId(ingredientId);
+        ingredient.setStock(new BigDecimal("20"));
+        ingredient.setMinimumStock(new BigDecimal("5"));
+        ingredient.setCost(new BigDecimal("180.00"));
+
+        IngredientResponse response = new IngredientResponse();
+
+        response.setId(ingredientId);
+        response.setName("Mass");
+        response.setStock(new BigDecimal("20"));
+        response.setMinimumStock(new BigDecimal("5"));
+        response.setCost(new BigDecimal("180.00"));
+
+        when(ingredientPresentationMapper.toDomain(any(CreateIngredientRequest.class)))
+                .thenReturn(ingredient);
+        when(updateIngredientUseCase.updateIngredient(ingredientId, ingredient))
+                .thenReturn(ingredient);
+        when(ingredientPresentationMapper.toResponse(ingredient))
+                .thenReturn(response);
+
+        ApiResponse<IngredientResponse> apiResponse = new ApiResponse<>(
+                true,
+                Messages.INGREDIENT_UPDATED,
+                "test-trace-id",
+                response,
+                null
+        );
+
+        when(responseFactory.success(
+                anyString(),
+                any(IngredientResponse.class)
+        )).thenReturn(apiResponse);
+
+        // When & Then
+        mockMvc.perform(
+                put("/api/v1/ingredients/{id}", ingredientId)
+                        .contentType("application/json")
+                        .content(objectMapper.writeValueAsString(request))
+        )
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.message").value(Messages.INGREDIENT_UPDATED))
+                .andExpect(jsonPath("$.traceId").value("test-trace-id"))
+                .andExpect(jsonPath("$.data.id").value(1))
+                .andExpect(jsonPath("$.data.name").value("Mass"))
+                .andExpect(jsonPath("$.data.stock").value(20))
+                .andExpect(jsonPath("$.data.minimumStock").value(5))
+                .andExpect(jsonPath("$.data.cost").value(180.00));
+
+        verify(ingredientPresentationMapper).toDomain(any(CreateIngredientRequest.class));
+        verify(updateIngredientUseCase).updateIngredient(ingredientId, ingredient);
+        verify(ingredientPresentationMapper).toResponse(ingredient);
+        verify(responseFactory).success(anyString(), eq(response));
+    }
+
+    @Test
+    @DisplayName("Should return 400 when ingredient update does not exist")
+    void shouldReturnNotFoundWhenIngredientUpdateDoesNotExist() throws Exception {
+        // Given
+        Long ingredientId = 999L;
+
+        CreateIngredientRequest request = new CreateIngredientRequest();
+
+        request.setName("Mass");
+        request.setUnit(IngredientUnit.KILOGRAM);
+        request.setStock(new BigDecimal("20"));
+        request.setMinimumStock(new BigDecimal("5"));
+        request.setCost(new BigDecimal("180.00"));
+
+        Ingredient ingredient = IngredientTestDataBuilder
+                .anIngredient()
+                .withName("Mass")
+                .build();
+
+        ApiErrorResponse errorResponse = new ApiErrorResponse();
+
+        when(ingredientPresentationMapper.toDomain(any(CreateIngredientRequest.class)))
+                .thenReturn(ingredient);
+        when(updateIngredientUseCase.updateIngredient(ingredientId, ingredient))
+                .thenThrow(new ResourceNotFoundException(Messages.INGREDIENT_NOT_FOUND));
+        when(responseFactory.error(
+                HttpStatus.NOT_FOUND,
+                Messages.INGREDIENT_NOT_FOUND
+        )).thenReturn(errorResponse);
+
+        // When & Then
+        mockMvc.perform(
+                put("/api/v1/ingredients/{id}", ingredientId)
+                        .contentType("application/json")
+                        .content(objectMapper.writeValueAsString(request))
+        )
+                .andExpect(status().isNotFound());
+
+        verify(ingredientPresentationMapper).toDomain(any(CreateIngredientRequest.class));
+        verify(updateIngredientUseCase).updateIngredient(ingredientId, ingredient);
+        verify(responseFactory).error(HttpStatus.NOT_FOUND, Messages.INGREDIENT_NOT_FOUND);
+    }
+
+    @Test
+    @DisplayName("Should return bad request when ingredient name already exists")
+    void shouldReturnBadRequestWhenIngredientNameAlreadyExists() throws Exception {
+        // Given
+        Long ingredientId = 1L;
+
+        CreateIngredientRequest request = new CreateIngredientRequest();
+
+        request.setName("Mass");
+        request.setUnit(IngredientUnit.KILOGRAM);
+        request.setStock(new BigDecimal("20"));
+        request.setMinimumStock(new BigDecimal("5"));
+        request.setCost(new BigDecimal("180.00"));
+
+        Ingredient ingredient = IngredientTestDataBuilder
+                .anIngredient()
+                .withName("Mass")
+                .build();
+
+        ApiErrorResponse errorResponse = new ApiErrorResponse();
+
+        when(ingredientPresentationMapper.toDomain(any(CreateIngredientRequest.class)))
+                .thenReturn(ingredient);
+        when(updateIngredientUseCase.updateIngredient(ingredientId, ingredient))
+                .thenThrow(new BusinessException(Messages.INGREDIENT_ALREADY_EXISTS));
+        when(responseFactory.error(
+                HttpStatus.BAD_REQUEST,
+                Messages.INGREDIENT_ALREADY_EXISTS
+        )).thenReturn(errorResponse);
+
+        // When & Then
+        mockMvc.perform(
+                put("/api/v1/ingredients/{id}", ingredientId)
+                        .contentType("application/json")
+                        .content(objectMapper.writeValueAsString(request))
+        )
+                .andExpect(status().isBadRequest());
+
+        verify(ingredientPresentationMapper).toDomain(any(CreateIngredientRequest.class));
+        verify(updateIngredientUseCase).updateIngredient(ingredientId, ingredient);
+        verify(responseFactory).error(HttpStatus.BAD_REQUEST, Messages.INGREDIENT_ALREADY_EXISTS);
+    }
+
+    @Test
+    @DisplayName("Should return 400 when update request is invalid")
+    void shouldReturnBadRequestWhenUpdateRequestIsInvalid() throws Exception {
+        // Given
+        CreateIngredientRequest request = new CreateIngredientRequest();
+
+        request.setName("");
+        request.setUnit(null);
+        request.setStock(BigDecimal.ZERO);
+        request.setMinimumStock(BigDecimal.ZERO);
+        request.setCost(BigDecimal.ZERO);
+
+        // When & Then
+        mockMvc.perform(
+                put("/api/v1/ingredients/{id}", 1L)
+                        .contentType("application/json")
+                        .content(objectMapper.writeValueAsString(request))
+        )
+                .andExpect(status().isBadRequest());
+
+        verifyNoInteractions(updateIngredientUseCase);
     }
 
 }
