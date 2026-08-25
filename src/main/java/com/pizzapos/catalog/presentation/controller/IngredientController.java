@@ -5,6 +5,7 @@ import com.pizzapos.catalog.domain.ports.in.ingredient.CreateIngredientUseCase;
 import com.pizzapos.catalog.domain.ports.in.ingredient.DeleteIngredientUseCase;
 import com.pizzapos.catalog.domain.ports.in.ingredient.GetAllIngredientsUseCase;
 import com.pizzapos.catalog.domain.ports.in.ingredient.GetIngredientByIdUseCase;
+import com.pizzapos.catalog.domain.ports.in.ingredient.UpdateIngredientUseCase;
 import com.pizzapos.catalog.presentation.dto.ingredient.request.CreateIngredientRequest;
 import com.pizzapos.catalog.presentation.dto.ingredient.response.IngredientResponse;
 import com.pizzapos.catalog.presentation.mapper.IngredientPresentationMapper;
@@ -21,6 +22,7 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -38,6 +40,7 @@ public class IngredientController {
     private final ResponseFactory responseFactory;
     private final CreateIngredientUseCase createIngredientUseCase;
     private final DeleteIngredientUseCase deleteIngredientUseCase;
+    private final UpdateIngredientUseCase updateIngredientUseCase;
     private final GetAllIngredientsUseCase getAllIngredientsUseCase;
     private final GetIngredientByIdUseCase getIngredientByIdUseCase;
     private final IngredientPresentationMapper ingredientPresentationMapper;
@@ -46,6 +49,7 @@ public class IngredientController {
             ResponseFactory responseFactory,
             CreateIngredientUseCase createIngredientUseCase,
             DeleteIngredientUseCase deleteIngredientUseCase,
+            UpdateIngredientUseCase updateIngredientUseCase,
             GetAllIngredientsUseCase getAllIngredientsUseCase,
             GetIngredientByIdUseCase getIngredientByIdUseCase,
             IngredientPresentationMapper ingredientPresentationMapper
@@ -53,6 +57,7 @@ public class IngredientController {
         this.responseFactory = responseFactory;
         this.createIngredientUseCase = createIngredientUseCase;
         this.deleteIngredientUseCase = deleteIngredientUseCase;
+        this.updateIngredientUseCase = updateIngredientUseCase;
         this.getAllIngredientsUseCase = getAllIngredientsUseCase;
         this.getIngredientByIdUseCase = getIngredientByIdUseCase;
         this.ingredientPresentationMapper = ingredientPresentationMapper;
@@ -134,6 +139,20 @@ public class IngredientController {
         return ResponseEntity.ok(responseFactory.success(Messages.INGREDIENTS_RETRIEVED, ingredientResponses));
     }
 
+    @Operation(
+            summary = "Delete ingredient by id",
+            description = "Soft deleted a ingredient by its identifier"
+    )
+    @ApiResponses({
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "200",
+                    description = "Ingredient deleted successfully"
+            ),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "404",
+                    description = "Ingredient not found"
+            )
+    })
     @DeleteMapping("/{id}")
     public ResponseEntity<ApiResponse<Void>> deleteIngredientById(
             @PathVariable Long id
@@ -141,6 +160,45 @@ public class IngredientController {
         deleteIngredientUseCase.deletedIngredientById(id);
 
         return ResponseEntity.ok(responseFactory.success(Messages.INGREDIENT_DELETED, null));
+    }
+
+    @Operation(
+            summary = "Update ingredient by id",
+            description = "Updates an existing ingredient in the catalog"
+    )
+    @ApiResponses({
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "200",
+                    description = "Ingredient update successfully"
+            ),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "400",
+                    description = "Validation error"
+            ),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "404",
+                    description = "Ingredient not found"
+            ),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "409",
+                    description = "Ingredient already exists"
+            )
+    })
+    @PutMapping("/{id}")
+    public ResponseEntity<ApiResponse<IngredientResponse>> updateIngredient(
+            @PathVariable Long id,
+            @Valid @RequestBody CreateIngredientRequest request
+    ) {
+        Ingredient ingredient = ingredientPresentationMapper.toDomain(request);
+        Ingredient updateIngredient = updateIngredientUseCase.updateIngredient(id, ingredient);
+        IngredientResponse response = ingredientPresentationMapper.toResponse(updateIngredient);
+
+        return ResponseEntity.ok(
+                responseFactory.success(
+                        Messages.INGREDIENT_UPDATED,
+                        response
+                )
+        );
     }
 
 }

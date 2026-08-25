@@ -235,4 +235,36 @@ public class IngredientPersistenceAdapterTest extends PersistenceTest {
         assertFalse(exists);
     }
 
+    @Test
+    @DisplayName("Should update ingredient successfully")
+    void shouldUpdateIngredientSuccessfully() {
+        // Given
+        Ingredient ingredient = IngredientTestDataBuilder
+                .anIngredient()
+                .build();
+
+        Ingredient saved = persistenceAdapter.save(ingredient);
+
+        saved.setName("Mass");
+        saved.setStock(new BigDecimal("50"));
+        saved.setCost(new BigDecimal("190.00"));
+
+        // When
+        Ingredient updated = persistenceAdapter.save(saved);
+
+        // Then
+        assertNotNull(updated);
+        assertEquals(saved.getId(), updated.getId());
+        assertEquals("Mass", updated.getName());
+        assertEquals(new BigDecimal("50"), updated.getStock());
+        assertEquals(new BigDecimal("190.00"), updated.getCost());
+        assertEquals(1, jpaRepository.count());
+
+        IngredientEntity entity = jpaRepository.findById(saved.getId()).orElseThrow();
+
+        assertEquals("Mass", entity.getName());
+        assertEquals(new BigDecimal("50"), entity.getStock());
+        assertEquals(new BigDecimal("190.00"), entity.getCost());
+    }
+
 }
