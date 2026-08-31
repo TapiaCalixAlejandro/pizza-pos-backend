@@ -21,4 +21,8 @@ public final class Messages {
     public static final String INGREDIENT_ALREADY_EXISTS = "An ingredient with this name already exists.";
     public static final String INGREDIENT_NOT_FOUND      = "Ingredient not found.";
 
+    public static final String PIZZA_CREATED = "Pizza created successfully.";
+    public static final String PIZZA_ALREADY_EXISTS = "Pizza already exists for this product.";
+    public static final String PIZZA_MUST_HAVE_INGREDIENTS = "Pizza must have at least one ingredient.";
+
 }
