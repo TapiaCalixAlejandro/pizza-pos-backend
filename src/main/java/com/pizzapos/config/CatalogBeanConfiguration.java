@@ -5,14 +5,17 @@ import com.pizzapos.catalog.application.service.ingredient.DeleteIngredientServi
 import com.pizzapos.catalog.application.service.ingredient.GetAllIngredientsService;
 import com.pizzapos.catalog.application.service.ingredient.GetIngredientByIdService;
 import com.pizzapos.catalog.application.service.ingredient.UpdateIngredientService;
+import com.pizzapos.catalog.application.service.pizza.CreatePizzaService;
 import com.pizzapos.catalog.application.service.product.*;
 import com.pizzapos.catalog.domain.ports.in.ingredient.CreateIngredientUseCase;
 import com.pizzapos.catalog.domain.ports.in.ingredient.DeleteIngredientUseCase;
 import com.pizzapos.catalog.domain.ports.in.ingredient.GetAllIngredientsUseCase;
 import com.pizzapos.catalog.domain.ports.in.ingredient.GetIngredientByIdUseCase;
 import com.pizzapos.catalog.domain.ports.in.ingredient.UpdateIngredientUseCase;
+import com.pizzapos.catalog.domain.ports.in.pizza.CreatePizzaUseCase;
 import com.pizzapos.catalog.domain.ports.in.product.*;
 import com.pizzapos.catalog.domain.ports.out.IngredientRepositoryPort;
+import com.pizzapos.catalog.domain.ports.out.PizzaRepositoryPort;
 import com.pizzapos.catalog.domain.ports.out.ProductRepositoryPort;
 import com.pizzapos.catalog.infrastructure.persistence.adapter.IngredientPersistenceAdapter;
 import com.pizzapos.catalog.infrastructure.persistence.adapter.ProductPersistenceAdapter;
@@ -115,6 +118,22 @@ public class CatalogBeanConfiguration {
             IngredientRepositoryPort ingredientRepositoryPort) {
 
         return new UpdateIngredientService(ingredientRepositoryPort);
+    }
+
+    // --- USE CASES PIZZAS
+
+    @Bean
+    public CreatePizzaUseCase createPizzaUseCase(
+            PizzaRepositoryPort pizzaRepositoryPort,
+            ProductRepositoryPort productRepositoryPort,
+            IngredientRepositoryPort ingredientRepositoryPort
+    ) {
+
+        return new CreatePizzaService(
+                pizzaRepositoryPort,
+                productRepositoryPort,
+                ingredientRepositoryPort
+        );
     }
 
 }

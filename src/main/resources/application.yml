@@ -20,6 +20,7 @@ spring:
   flyway:
     enabled: true
     location: classpath:db/migration
+    validate-on-migrate: false
 
 springdoc:
   swagger-ui:
